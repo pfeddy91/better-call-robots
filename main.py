@@ -3,8 +3,8 @@ import json
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response
-from llm import GeminiLLM
-from settings import PORT, WS_URL, WELCOME_GREETING
+from llm import GeminiLLM, GREETING
+from settings import PORT, WS_URL
 
 # Initialize the LLM
 llm = GeminiLLM()
@@ -20,7 +20,7 @@ async def twiml_endpoint():
     xml_response = f"""<?xml version="1.0" encoding="UTF-8"?>
     <Response>
     <Connect>
-    <ConversationRelay url="{WS_URL}" welcomeGreeting="{WELCOME_GREETING}" ttsProvider="ElevenLabs" voice="FGY2WhTYpPnrIDTdsKH5" />
+    <ConversationRelay url="{WS_URL}" welcomeGreeting="{GREETING}" ttsProvider="ElevenLabs" voice="FGY2WhTYpPnrIDTdsKH5" />
     </Connect>
     </Response>"""
     

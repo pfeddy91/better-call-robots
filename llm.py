@@ -1,8 +1,21 @@
+import os
 import google.generativeai as genai
 from typing import Dict, Optional
 from settings import GOOGLE_API_KEY
-from prompt import SYSTEM_PROMPT
 
+
+def get_system_prompt():
+    prompt_dir = os.path.join(os.path.dirname(__file__), "prompts/system_prompt.txt")
+    with open(prompt_dir, "r") as file:
+        return file.read()
+
+def get_greeting():
+    prompt_dir = os.path.join(os.path.dirname(__file__), "prompts/greeting.txt")
+    with open(prompt_dir, "r") as file:
+        return file.read()
+
+SYSTEM_PROMPT = get_system_prompt()
+GREETING = get_greeting()
 
 class GeminiLLM:
     """A class to handle all Gemini AI interactions and session management."""
