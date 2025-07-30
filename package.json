@@ -1,0 +1,23 @@
+{
+  "name": "better-call-robots-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BetterCallRobots - AI Voice Assistant Platform",
+  "scripts": {
+    "dev": "concurrently \"npm run web:dev\" \"npm run api:dev\"",
+    "web:dev": "npm run dev --workspace=apps/web",
+    "api:dev": "cd services/api && python main.py",
+    "build": "npm run build --workspace=apps/web",
+    "install:all": "npm install && npm install --workspace=apps/web",
+    "clean": "rm -rf node_modules apps/web/node_modules services/api/__pycache__"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["voice-ai", "twilio", "gemini", "fastapi", "react"],
+  "license": "MIT"
+}
