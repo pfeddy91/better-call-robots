@@ -1,6 +1,9 @@
-# 🤖 BetterCallRobots - AI Voice Assistant Platform
+# 🤖 Better Call Robots
+## Enterprise AI Voice Assistant Platform for Telcos & Utilities
 
-A scalable monorepo containing a complete voice AI platform with React frontend and Python backend.
+**Revolutionizing customer support and sales with intelligent voice automation**
+
+Transform your customer experience with AI-powered voice assistants designed for enterprise telecommunications and utility companies. Handle inbound customer support seamlessly and boost outbound sales with natural, human-like conversations.
 
 ## 🏗️ Monorepo Structure
 
@@ -55,17 +58,34 @@ better-call-robots/
    npm run api:dev    # Backend on http://localhost:8080
    ```
 
-## 🌐 Frontend (apps/web/)
-- **Framework:** React 18 + TypeScript + Vite
-- **UI:** Tailwind CSS + shadcn/ui (50+ components)
-- **State:** React Query + React Hook Form
-- **Features:** Agent configuration, multi-language support, advanced settings
+## 🎯 Enterprise Use Cases
 
-## 🔧 Backend (services/api/)
+### 📞 **Inbound Customer Support**
+- 24/7 automated customer service for billing inquiries
+- Technical support for outages and service issues
+- Account management and service upgrades
+- Multi-language support for diverse customer bases
+
+### 📈 **Outbound Sales & Upselling**
+- Proactive customer retention calls
+- Service upgrade recommendations
+- Payment reminders and collection calls
+- Market research and customer satisfaction surveys
+
+## 🏗️ Technology Stack
+
+### 🌐 **Frontend** (apps/web/)
+- **Framework:** React 18 + TypeScript + Vite
+- **UI:** Tailwind CSS + shadcn/ui (50+ professional components)
+- **State:** React Query + React Hook Form
+- **Features:** Agent configuration, multi-language support, enterprise settings
+
+### 🔧 **Backend** (services/api/)
 - **Framework:** FastAPI + Python
-- **AI:** Google Gemini 2.5 Flash
-- **Voice:** Twilio ConversationRelay + WebSockets
-- **Features:** Real-time voice processing, session management
+- **AI Engine:** Google Gemini 2.5 Flash for natural conversations
+- **Voice Platform:** Twilio ConversationRelay + WebSockets
+- **Voice Synthesis:** ElevenLabs for premium, human-like voice quality
+- **Features:** Real-time voice processing, session management, enterprise integrations
 
 ## 📦 Packages
 - **shared-types:** TypeScript interfaces for type safety between frontend/backend
@@ -88,19 +108,36 @@ npm install --workspace=apps/web
 npm run build --workspace=apps/web
 ```
 
-## 📱 Usage
+## 🚀 Enterprise Features
+
+✅ **Real-time Voice Processing** - Low-latency conversations with enterprise-grade reliability  
+✅ **Premium Voice Quality** - ElevenLabs integration for natural, professional voices  
+✅ **Scalable Architecture** - Monorepo design supporting enterprise deployment  
+✅ **Multi-language Support** - Serve diverse customer bases globally  
+✅ **Advanced Analytics** - Track call performance and customer satisfaction  
+✅ **CRM Integration Ready** - Built for enterprise system integration  
+
+## 💼 Demo
 
 1. **Start ngrok:** `ngrok http --url=YOUR_NGROK_URL 8080`
 2. **Configure Twilio:** Set webhook to `https://YOUR_NGROK_URL/twiml`
-3. **Call your Twilio number** and interact with the AI assistant!
+3. **Click "Talk to Agent"** in the web interface and experience enterprise-grade AI conversation!
 
 ## 📚 Documentation
-- [Architecture Overview](./docs/ARCHITECTURE.md)
-- [Frontend Specifications](./docs/FRONTEND_SPECIFICATIONS.md)
-- [Backend API Documentation](./docs/BACKEND_API_SPECIFICATIONS.md)
+- [Architecture Overview](./docs/ARCHITECTURE.md) - System design and enterprise deployment
+- [Twilio Integration Guide](./docs/TWILIO_BROWSER_VOICE_INTEGRATION.md) - Voice setup walkthrough
+- [Pipeline Documentation](./docs/PIPELINE.md) - Development and deployment workflows
 
-## 🤝 Contributing
-This is a scalable monorepo designed for growth. Each service and app can be developed independently while sharing common types and utilities.
+## 🏢 Built for Enterprise
 
-## 📄 License
-MIT
+**Better Call Robots** is specifically designed for **telecommunications companies** and **utility providers** who need:
+- High-volume call handling capabilities
+- Enterprise-grade security and compliance
+- Seamless integration with existing CRM and billing systems
+- Scalable architecture for millions of customer interactions
+
+Perfect for **customer service automation**, **billing support**, **outage notifications**, and **proactive sales campaigns**.
+
+---
+
+*Revolutionizing customer experience, one conversation at a time* 🤖📞
