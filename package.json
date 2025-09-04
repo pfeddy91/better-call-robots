@@ -21,5 +21,6 @@
     "concurrently": "^8.2.2"
   },
   "keywords": ["voice-ai", "twilio", "gemini", "fastapi", "react"],
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "npm@10.8.2"
 }
