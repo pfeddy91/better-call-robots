@@ -22,5 +22,8 @@
   },
   "keywords": ["voice-ai", "twilio", "gemini", "fastapi", "react"],
   "license": "MIT",
-  "packageManager": "npm@10.8.2"
+  "packageManager": "npm@10.8.2",
+  "engines": {
+    "node": "20.x"
+  }
 }
