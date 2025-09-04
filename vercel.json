@@ -18,8 +18,12 @@
       "dest": "/index.html"
     }
   ],
-  "buildCommand": "cd apps/web && npm run build",
+  "env": {
+    "ROLLUP_USE_NATIVE": "false",
+    "CI": "true"
+  },
+  "buildCommand": "cd apps/web && npm ci && npm run build",
   "devCommand": "cd apps/web && npm run dev",
-  "installCommand": "cd apps/web && npm install",
+  "installCommand": "cd apps/web && npm ci",
   "outputDirectory": "apps/web/dist"
 }
