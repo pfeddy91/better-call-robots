@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "ROLLUP_USE_NATIVE=false vite build",
+    "build": "rm -rf node_modules/.vite && ROLLUP_USE_NATIVE=false vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
