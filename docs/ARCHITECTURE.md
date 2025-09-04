@@ -112,8 +112,8 @@ better-call-robots/
 ### 📦 **Shared Types (packages/shared-types/)**
 - **Purpose:** Ensure type safety between frontend and backend
 - **Key Types:**
-  - `AgentConfig` - Complete agent configuration interface
-  - `AgentSettings` - Boolean feature flags
+- `AgentConfig` - Complete agent configuration interface
+- `AgentSettings` - Boolean feature flags
   - API request/response interfaces
 
 ## 🔄 **Migration Summary: What Changed**

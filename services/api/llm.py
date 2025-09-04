@@ -2,6 +2,9 @@ import os
 import google.generativeai as genai
 from typing import Dict, Optional
 from settings import GOOGLE_API_KEY
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_system_prompt():
@@ -23,37 +26,47 @@ class GeminiLLM:
     def __init__(self):
         """Initialize the Gemini LLM with configuration and model setup."""
         genai.configure(api_key=GOOGLE_API_KEY)
-
-        self.model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash", system_instruction=SYSTEM_PROMPT
-        )
         self.sessions: Dict[str, any] = {}
 
     def create_session(self, call_sid: str) -> None:
         """Create a new chat session for a call."""
-        self.sessions[call_sid] = self.model.start_chat(history=[])
+        self.sessions[call_sid] = []  # Store conversation history
 
-    def get_session(self, call_sid: str) -> Optional[any]:
-        """Get an existing chat session for a call."""
-        return self.sessions.get(call_sid)
+    def send_message(self, call_sid: str, message: str) -> str:
+        """Send a message to the AI and get a response."""
+        if call_sid not in self.sessions:
+            self.create_session(call_sid)
 
-    def remove_session(self, call_sid: str) -> None:
-        """Remove a chat session for a call."""
+        # Add user message to history
+        self.sessions[call_sid].append(f"User: {message}")
+        
+        # Create context from history
+        context = "\n".join(self.sessions[call_sid][-10:])  # Last 10 messages
+        prompt = f"{SYSTEM_PROMPT}\n\nConversation:\n{context}\n\nAI:"
+
+        try:
+            response = genai.generate_text(
+                model="models/text-bison-001",
+                prompt=prompt,
+                temperature=0.7,
+                max_output_tokens=200
+            )
+            
+            ai_response = response.result if response.result else "I apologize, I didn't understand that."
+            
+            # Add AI response to history
+            self.sessions[call_sid].append(f"AI: {ai_response}")
+            
+            return ai_response
+            
+        except Exception as e:
+            logger.error(f"Error generating response: {e}")
+            return "I'm having trouble right now. Can you please repeat that?"
+
+    def end_session(self, call_sid: str) -> None:
+        """End a chat session and clean up."""
         if call_sid in self.sessions:
-            self.sessions.pop(call_sid)
-
-    async def get_response(self, call_sid: str, user_prompt: str) -> str:
-        """Get a response from Gemini for a given call session and user prompt."""
-        chat_session = self.get_session(call_sid)
-        if not chat_session:
-            raise ValueError(f"No session found for call_sid: {call_sid}")
-
-        response = await chat_session.send_message_async(user_prompt)
-        return response.text
-
-    def has_session(self, call_sid: str) -> bool:
-        """Check if a session exists for the given call_sid."""
-        return call_sid in self.sessions
+            del self.sessions[call_sid]
 
 
 if __name__ == "__main__":
@@ -77,13 +90,13 @@ if __name__ == "__main__":
             print("-" * 50)
 
             # Get response
-            response = await llm.get_response(test_call_sid, user_prompt)
+            response = llm.send_message(test_call_sid, user_prompt)
 
             print(f"LLM Response: {response}")
             print("-" * 50)
 
             # Clean up
-            llm.remove_session(test_call_sid)
+            llm.end_session(test_call_sid)
 
         except Exception as e:
             print(f"Error during test: {e}")

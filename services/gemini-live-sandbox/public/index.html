@@ -1,0 +1,468 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Gemini Live Sandbox</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 20px; }
+    #logs { white-space: pre-wrap; background: #0b0b0b; color: #d6d6d6; padding: 12px; border-radius: 8px; height: 360px; overflow: auto; }
+    .row { display: flex; gap: 8px; margin-bottom: 8px; }
+    input, button { font-size: 14px; padding: 8px; }
+    input { flex: 1; }
+  </style>
+  </head>
+<body>
+  <h2>Gemini Live Sandbox (Phase 1: Text)</h2>
+  <div class="row">
+    <button id="btnConnect">Connect</button>
+    <button id="btnClose" disabled>Close</button>
+    <span id="sid"></span>
+  </div>
+  <div class="row">
+    <input id="txt" placeholder="Type a message (e.g. Say pong)" />
+    <button id="btnSend" disabled>Send</button>
+  </div>
+  <div class="row">
+    <button id="btnMic" disabled>Start Mic</button>
+    <button id="btnMicStop" disabled>Stop Mic</button>
+    <audio id="speaker" controls></audio>
+  </div>
+  <div class="row">
+    <button id="btnPause" disabled>Pause Logs</button>
+    <button id="btnCopy" disabled>Copy Logs</button>
+    <button id="btnClear">Clear Logs</button>
+    <button id="btnDownload" disabled>Download Logs</button>
+    <label style="display:flex;align-items:center;gap:6px;">
+      <input type="checkbox" id="autoScroll" checked /> Auto-scroll
+    </label>
+  </div>
+  <div id="logs"></div>
+  <h3>Assistant</h3>
+  <div id="assistant" style="white-space: pre-wrap; border: 1px solid #ddd; padding: 8px; border-radius: 6px; min-height: 80px;"></div>
+
+  <script>
+    const logs = document.getElementById('logs');
+    const sidEl = document.getElementById('sid');
+    const assistantEl = document.getElementById('assistant');
+    const btnConnect = document.getElementById('btnConnect');
+    const btnClose = document.getElementById('btnClose');
+    const btnSend = document.getElementById('btnSend');
+    const btnMic = document.getElementById('btnMic');
+    const btnMicStop = document.getElementById('btnMicStop');
+    const speaker = document.getElementById('speaker');
+    const btnPause = document.getElementById('btnPause');
+    const btnCopy = document.getElementById('btnCopy');
+    const btnClear = document.getElementById('btnClear');
+    const btnDownload = document.getElementById('btnDownload');
+    const autoScroll = document.getElementById('autoScroll');
+    const txt = document.getElementById('txt');
+
+    let sessionId = null;
+    // Polling removed; WebSocket is the single source of truth for events
+    let ws = null;                // websocket for real-time events
+    let isAssistantSpeaking = false; // half-duplex flag
+    let isPaused = false;
+    let mediaStream = null;
+    let audioContext = null;      // mic capture context
+    let sourceNode = null;
+    let processorNode = null;
+
+    // Playback engine (continuous queuing via Web Audio)
+    let playCtx = null;           // playback context
+    let nextPlayAt = 0;           // scheduled time of next chunk
+    let playedAudioCount = 0;     // number of assistantAudio events consumed
+    let pendingAudio = [];        // jitter buffer queue of { mimeType, base64 }
+    const MIN_START_BUFFER_SEC = 0.80;  // increased to smooth network jitter
+    const TARGET_BUFFER_SEC = 1.50;     // target buffer backlog
+    const FADE_SEC = 0.008;             // 8ms crossfade between chunks
+    let lastGainNode = null;
+    let lastEndAt = 0;
+
+    const log = (o) => {
+      const line = (typeof o === 'string') ? o : JSON.stringify(o, null, 2);
+      logs.textContent += line + '\n';
+      if (autoScroll.checked) logs.scrollTop = logs.scrollHeight;
+    };
+
+    // Helpers for rendering PCM to playable audio (wrap raw PCM into WAV)
+    function base64ToUint8(b64) {
+      const binary = atob(b64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    }
+    function parseRateFromMime(mime) {
+      const m = /rate=(\d+)/.exec(mime || '');
+      const r = m ? parseInt(m[1], 10) : 24000;
+      return (r && r >= 12000 && r <= 48000) ? r : 24000;
+    }
+    function pcm16leToWavBlob(pcmBytes, sampleRate, channels = 1) {
+      const blockAlign = channels * 2; // 16-bit
+      const byteRate = sampleRate * blockAlign;
+      const dataSize = pcmBytes.byteLength;
+      const wavSize = 44 + dataSize;
+      const buffer = new ArrayBuffer(wavSize);
+      const view = new DataView(buffer);
+      // RIFF header
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + dataSize, true);
+      writeString(view, 8, 'WAVE');
+      // fmt chunk
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true); // PCM chunk size
+      view.setUint16(20, 1, true);  // audio format = PCM
+      view.setUint16(22, channels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, byteRate, true);
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, 16, true); // bits per sample
+      // data chunk
+      writeString(view, 36, 'data');
+      view.setUint32(40, dataSize, true);
+      // PCM data
+      new Uint8Array(buffer, 44).set(new Uint8Array(pcmBytes));
+      return new Blob([buffer], { type: 'audio/wav' });
+    }
+    function writeString(view, offset, str) {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    }
+
+    // Continuous playback helpers
+    function ensurePlayCtx() {
+      if (!playCtx) playCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+      if (playCtx.state === 'suspended') playCtx.resume();
+      if (nextPlayAt < playCtx.currentTime) nextPlayAt = playCtx.currentTime;
+    }
+
+    function pcm16leBase64ToFloat32(base64) {
+      const bytes = base64ToUint8(base64);
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const len = bytes.byteLength / 2;
+      const out = new Float32Array(len);
+      for (let i = 0; i < len; i++) {
+        const s = view.getInt16(i * 2, true);
+        out[i] = Math.max(-1, Math.min(1, s / 32768));
+      }
+      return out;
+    }
+
+    async function enqueueAssistantAudio(mimeType, base64) {
+      try {
+        ensurePlayCtx();
+        if (mimeType.startsWith('audio/pcm')) {
+          const rate = parseRateFromMime(mimeType) || 24000;
+          const floats = pcm16leBase64ToFloat32(base64);
+          const buffer = playCtx.createBuffer(1, floats.length, rate);
+          buffer.getChannelData(0).set(floats);
+          const src = playCtx.createBufferSource();
+          src.buffer = buffer;
+          const gainNode = playCtx.createGain();
+          gainNode.gain.setValueAtTime(0, Math.max(playCtx.currentTime, nextPlayAt));
+          // Crossfade: fade-in current
+          const startAt = Math.max(playCtx.currentTime, nextPlayAt);
+          gainNode.gain.linearRampToValueAtTime(1, startAt + FADE_SEC);
+          src.connect(gainNode).connect(playCtx.destination);
+          // Crossfade: fade-out previous
+          if (lastGainNode && lastEndAt > startAt) {
+            const fadeStart = Math.max(startAt, lastEndAt - FADE_SEC);
+            try {
+              lastGainNode.gain.setValueAtTime(1, fadeStart);
+              lastGainNode.gain.linearRampToValueAtTime(0, lastEndAt);
+            } catch {}
+          }
+          src.start(startAt);
+          lastGainNode = gainNode;
+          lastEndAt = startAt + buffer.duration;
+          nextPlayAt = lastEndAt;
+        } else {
+          // Try to decode compressed formats (e.g., opus/webm if ever returned inline)
+          const bin = base64ToUint8(base64);
+          const ab = bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength);
+          const decoded = await playCtx.decodeAudioData(ab).catch(() => null);
+          if (decoded) {
+            const src = playCtx.createBufferSource();
+            src.buffer = decoded;
+            const gainNode = playCtx.createGain();
+            const startAt = Math.max(playCtx.currentTime, nextPlayAt);
+            gainNode.gain.setValueAtTime(0, startAt);
+            gainNode.gain.linearRampToValueAtTime(1, startAt + FADE_SEC);
+            src.connect(gainNode).connect(playCtx.destination);
+            if (lastGainNode && lastEndAt > startAt) {
+              const fadeStart = Math.max(startAt, lastEndAt - FADE_SEC);
+              try {
+                lastGainNode.gain.setValueAtTime(1, fadeStart);
+                lastGainNode.gain.linearRampToValueAtTime(0, lastEndAt);
+              } catch {}
+            }
+            src.start(startAt);
+            lastGainNode = gainNode;
+            lastEndAt = startAt + decoded.duration;
+            nextPlayAt = lastEndAt;
+          } else {
+            // Fallback to <audio> element if decoding fails
+            speaker.src = `data:${mimeType};base64,${base64}`;
+            if (!speaker.paused) speaker.pause();
+            speaker.currentTime = 0;
+            await speaker.play().catch(() => {});
+          }
+        }
+      } catch (e) {
+        log({ enqueueError: String(e) });
+      }
+    }
+
+    function estimateBytesFromBase64(b64) {
+      let bytes = Math.floor((b64.length * 3) / 4);
+      if (b64.endsWith('==')) bytes -= 2; else if (b64.endsWith('=')) bytes -= 1;
+      return bytes;
+    }
+
+    function computePcmDurationSec(mimeType, base64) {
+      const rate = parseRateFromMime(mimeType) || 24000;
+      const bytes = estimateBytesFromBase64(base64);
+      const samples = bytes / 2; // 16-bit PCM
+      return samples / rate;
+    }
+
+    async function drainPlaybackBuffer() {
+      ensurePlayCtx();
+      let backlog = Math.max(0, nextPlayAt - playCtx.currentTime);
+      // Accumulate up to a target buffer, then schedule
+      while (pendingAudio.length && backlog < TARGET_BUFFER_SEC) {
+        const { mimeType, base64 } = pendingAudio.shift();
+        await enqueueAssistantAudio(mimeType, base64);
+        backlog = Math.max(0, nextPlayAt - playCtx.currentTime);
+      }
+    }
+
+    // (Removed startPolling)
+
+    function connectWebSocket() {
+      if (!sessionId) return;
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      ws = new WebSocket(`${proto}://${location.host}/?sid=${encodeURIComponent(sessionId)}`);
+      ws.onopen = () => log({ ws: 'open' });
+      ws.onclose = (e) => log({ ws: 'close', code: e.code, reason: e.reason });
+      ws.onerror = (e) => log({ ws: 'error' });
+      ws.onmessage = async (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'assistantText') {
+            const t = msg.data?.text || '';
+            if (t) assistantEl.textContent = t;
+          } else if (msg.type === 'assistantAudio') {
+            const { mimeType, base64 } = msg.data || {};
+            if (mimeType && base64) {
+              // Half-duplex: mute mic while assistant is speaking
+              isAssistantSpeaking = true;
+              if (mediaStream) {
+                mediaStream.getAudioTracks().forEach(t => { t.enabled = false; });
+              }
+              pendingAudio.push({ mimeType, base64 });
+              await drainPlaybackBuffer();
+            }
+      } else if (msg.type === 'turnComplete' || msg.type === 'close') {
+            isAssistantSpeaking = false;
+            if (mediaStream) mediaStream.getAudioTracks().forEach(t => { t.enabled = true; });
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+      };
+    }
+
+    btnConnect.onclick = async () => {
+      logs.textContent = '';
+      const r = await fetch('/api/session', { method: 'POST' });
+      const j = await r.json();
+      if (!j.success) return log(j);
+      sessionId = j.sessionId;
+      sidEl.textContent = `sessionId: ${sessionId}`;
+      btnSend.disabled = false;
+      btnClose.disabled = false;
+      btnPause.disabled = false;
+      btnCopy.disabled = false;
+      btnDownload.disabled = false;
+      btnMic.disabled = false;
+      log({ connected: true, sessionId });
+      // Prepare playback context on user gesture path
+      ensurePlayCtx();
+      nextPlayAt = playCtx?.currentTime || 0;
+      playedAudioCount = 0;
+      connectWebSocket();
+    };
+
+    btnSend.onclick = async () => {
+      const text = txt.value.trim() || 'Say "pong" if you can hear me.';
+      if (!sessionId) return log('No session. Connect first.');
+      const r = await fetch(`/api/session/${sessionId}/send-text`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      const j = await r.json();
+      log({ sent: text, result: j });
+    };
+
+    btnClose.onclick = async () => {
+      if (!sessionId) return;
+      await fetch(`/api/session/${sessionId}/close`, { method: 'POST' });
+      log('Closed session.');
+      // (No polling to clear)
+      if (ws) { try { ws.close(); } catch {} ws = null; }
+      // Reset playback engine
+      playedAudioCount = 0;
+      nextPlayAt = 0;
+      if (playCtx) { try { await playCtx.close(); } catch {} playCtx = null; }
+      sessionId = null;
+      btnSend.disabled = true;
+      btnClose.disabled = true;
+      btnPause.disabled = true;
+      btnCopy.disabled = false; // still allow copying
+      btnDownload.disabled = false;
+      btnMic.disabled = true;
+      btnMicStop.disabled = true;
+      sidEl.textContent = '';
+    };
+
+    btnPause.onclick = () => {
+      isPaused = !isPaused;
+      btnPause.textContent = isPaused ? 'Resume Logs' : 'Pause Logs';
+    };
+
+    btnCopy.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(logs.textContent);
+        log('Logs copied to clipboard');
+      } catch (e) {
+        log({ copyError: String(e) });
+      }
+    };
+
+    btnClear.onclick = () => {
+      logs.textContent = '';
+      assistantEl.textContent = '';
+    };
+
+    btnDownload.onclick = () => {
+      const blob = new Blob([logs.textContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sandbox-logs-${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
+    // Helpers for PCM
+    function downsampleTo16k(float32Array, inputSampleRate) {
+      const targetRate = 16000;
+      if (inputSampleRate === targetRate) return float32Array;
+      const ratio = inputSampleRate / targetRate;
+      const newLength = Math.round(float32Array.length / ratio);
+      const result = new Float32Array(newLength);
+      for (let i = 0; i < newLength; i++) {
+        const idx = i * ratio;
+        const idx0 = Math.floor(idx);
+        const idx1 = Math.min(idx0 + 1, float32Array.length - 1);
+        const frac = idx - idx0;
+        result[i] = float32Array[idx0] * (1 - frac) + float32Array[idx1] * frac;
+      }
+      return result;
+    }
+
+    function floatTo16BitPCM(float32Array) {
+      const out = new Int16Array(float32Array.length);
+      for (let i = 0; i < float32Array.length; i++) {
+        let s = Math.max(-1, Math.min(1, float32Array[i]));
+        out[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+      }
+      return new Uint8Array(out.buffer);
+    }
+
+    function toBase64(uint8) {
+      let binary = '';
+      const chunk = 0x8000;
+      for (let i = 0; i < uint8.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, uint8.subarray(i, i + chunk));
+      }
+      return btoa(binary);
+    }
+
+    // Audio capture using Web Audio API -> PCM 16k
+    btnMic.onclick = async () => {
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: { ideal: true },
+            noiseSuppression: { ideal: true },
+            autoGainControl: { ideal: false },
+            channelCount: { ideal: 1 },
+            sampleRate: { ideal: 16000 }
+          }
+        });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+        sourceNode = audioContext.createMediaStreamSource(mediaStream);
+        processorNode = audioContext.createScriptProcessor(2048, 1, 1);
+        processorNode.onaudioprocess = async (event) => {
+          if (!sessionId) return;
+          if (isAssistantSpeaking) return; // half-duplex: do not stream mic while assistant speaking
+          const input = event.inputBuffer.getChannelData(0);
+          const down = downsampleTo16k(new Float32Array(input), audioContext.sampleRate);
+          const pcm = floatTo16BitPCM(down);
+          const base64 = toBase64(pcm);
+          const mimeType = 'audio/pcm;rate=16000';
+          try {
+            await fetch(`/api/session/${sessionId}/send-audio`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ base64, mimeType })
+            });
+          } catch (e) {
+            // swallow send errors to avoid blocking audio thread logs
+          }
+        };
+        sourceNode.connect(processorNode);
+        // Do NOT connect to destination to avoid echo/distortion
+        btnMic.disabled = true;
+        btnMicStop.disabled = false;
+        log({ mic: 'started', mimeType: 'audio/pcm;rate=16000' });
+      } catch (e) {
+        log({ micError: String(e) });
+      }
+    };
+
+    btnMicStop.onclick = async () => {
+      try {
+        if (processorNode) { processorNode.disconnect(); processorNode.onaudioprocess = null; }
+        if (sourceNode) sourceNode.disconnect();
+        if (audioContext) await audioContext.close();
+        if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+        processorNode = null;
+        sourceNode = null;
+        audioContext = null;
+        mediaStream = null;
+        btnMic.disabled = false;
+        btnMicStop.disabled = true;
+        if (sessionId) {
+          await fetch(`/api/session/${sessionId}/send-audio`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ end: true })
+          });
+        }
+        log({ mic: 'stopped' });
+      } catch (e) {
+        log({ micStopError: String(e) });
+      }
+    };
+  </script>
+</body>
+</html>
+
+

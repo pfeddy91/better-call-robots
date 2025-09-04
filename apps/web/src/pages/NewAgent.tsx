@@ -12,6 +12,7 @@ import GradientButton from "@/components/ui/gradient-button";
 import { ArrowLeft, PhoneIncoming, PhoneOutgoing, Globe, MessageSquare, Settings, ChevronDown, ChevronUp, Phone, Plus, Search, Play, FileText, Type, Upload, User, ExternalLink } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router-dom";
+import { startCall, endCall, mute, getState } from "@/lib/voice";
 
 const NewAgent = () => {
   const navigate = useNavigate();
@@ -38,6 +39,8 @@ const NewAgent = () => {
   // State for API interactions
   const [isCreating, setIsCreating] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [callStatus, setCallStatus] = useState<"idle" | "connecting" | "connected" | "error">("idle");
+  const [muted, setMuted] = useState(false);
 
   // State for collapsible sections
   const [openSections, setOpenSections] = useState({
@@ -154,6 +157,30 @@ const NewAgent = () => {
         voicemailDetection: false,
       }
     });
+  };
+
+  const handleStartTalk = async () => {
+    try {
+      setCallStatus("connecting");
+      await startCall();
+      setCallStatus("connected");
+    } catch (e) {
+      console.error("Failed to start call", e);
+      setCallStatus("error");
+      setApiError("Failed to start call. Check network and token endpoint.");
+    }
+  };
+
+  const handleHangUp = () => {
+    try { endCall(); } catch {}
+    setCallStatus("idle");
+    setMuted(false);
+  };
+
+  const handleToggleMute = () => {
+    const next = !muted;
+    mute(next);
+    setMuted(next);
   };
 
   const handleSelectAgent = (agentId: string) => {
@@ -438,10 +465,22 @@ const NewAgent = () => {
                 <Play className="w-4 h-4" />
                 <span>Test</span>
               </GradientButton>
-              <GradientButton>
-                <Phone className="w-4 h-4" />
-                <span>Talk to Agent</span>
-              </GradientButton>
+              {callStatus !== "connected" ? (
+                <GradientButton onClick={handleStartTalk} disabled={callStatus === "connecting"}>
+                  <Phone className="w-4 h-4" />
+                  <span>{callStatus === "connecting" ? "Connecting..." : "Talk to Agent"}</span>
+                </GradientButton>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <GradientButton onClick={handleHangUp}>
+                    <Phone className="w-4 h-4" />
+                    <span>Hang up</span>
+                  </GradientButton>
+                  <Button variant="outline" onClick={handleToggleMute}>
+                    {muted ? "Unmute" : "Mute"}
+                  </Button>
+                </div>
+              )}
               <GradientButton>
                 <span>Publish Agent</span>
               </GradientButton>

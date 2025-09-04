@@ -19,68 +19,85 @@ export default {
 		},
 		extend: {
 			/* ==============================================
-			   TYPOGRAPHY CONFIGURATION - Easily Configurable
+			   TYPOGRAPHY CONFIGURATION - Simplified 4-size system
 			   ============================================== */
 			fontFamily: {
-				// Default sans-serif font (Noto Sans)
+				// Noto Sans for all text
 				'sans': ['Noto Sans', 'system-ui', '-apple-system', 'sans-serif'],
-				// Primary font for UI elements, body text
 				'primary': ['Noto Sans', 'system-ui', '-apple-system', 'sans-serif'],
-				// Secondary font for headings, display text
-				'secondary': ['Noto Sans', 'system-ui', 'sans-serif'],
-				// Monospace font for code, technical content
+				// Monospace for code only
 				'mono': ['JetBrains Mono', 'Consolas', 'Monaco', 'monospace'],
 			},
 
 			fontSize: {
-				// Configurable font sizes with line heights
-				'display-xl': ['4rem', { lineHeight: '1.1', fontWeight: '800' }],      // 64px
-				'display-lg': ['3.5rem', { lineHeight: '1.1', fontWeight: '700' }],    // 56px
-				'display-md': ['3rem', { lineHeight: '1.15', fontWeight: '700' }],     // 48px
-				'display-sm': ['2.5rem', { lineHeight: '1.2', fontWeight: '600' }],    // 40px
-				
-				'heading-xl': ['2.25rem', { lineHeight: '1.25', fontWeight: '600' }],  // 36px
-				'heading-lg': ['2rem', { lineHeight: '1.3', fontWeight: '600' }],      // 32px
-				'heading-md': ['1.75rem', { lineHeight: '1.35', fontWeight: '600' }],  // 28px
-				'heading-sm': ['1.5rem', { lineHeight: '1.4', fontWeight: '500' }],    // 24px
-				'heading-xs': ['1.25rem', { lineHeight: '1.4', fontWeight: '500' }],   // 20px
-				
-				'body-xl': ['1.125rem', { lineHeight: '1.6', fontWeight: '400' }],     // 18px
-				'body-lg': ['1rem', { lineHeight: '1.6', fontWeight: '400' }],         // 16px
-				'body-md': ['0.875rem', { lineHeight: '1.5', fontWeight: '400' }],     // 14px
-				'body-sm': ['0.8125rem', { lineHeight: '1.5', fontWeight: '400' }],    // 13px
-				'body-xs': ['0.75rem', { lineHeight: '1.4', fontWeight: '400' }],      // 12px
-				
-				'caption': ['0.6875rem', { lineHeight: '1.3', fontWeight: '400' }],    // 11px
-				'overline': ['0.625rem', { lineHeight: '1.2', fontWeight: '500', letterSpacing: '0.08em' }], // 10px
+				// Simplified 4-size typography system
+				'header': ['1.5rem', { lineHeight: '1.3', fontWeight: '600', letterSpacing: '-0.01em' }],     // 24px
+				'sub-header': ['1.25rem', { lineHeight: '1.4', fontWeight: '500', letterSpacing: 'normal' }], // 20px
+				'standard': ['1rem', { lineHeight: '1.6', fontWeight: '400', letterSpacing: 'normal' }],      // 16px
+				'small': ['0.875rem', { lineHeight: '1.5', fontWeight: '400', letterSpacing: 'normal' }],     // 14px
 			},
 
 			fontWeight: {
-				// Easily configurable font weights
-				'light': '300',
+				// Essential font weights only
 				'normal': '400',
 				'medium': '500',
 				'semibold': '600',
 				'bold': '700',
-				'extrabold': '800',
 			},
 
 			letterSpacing: {
-				// Typography letter spacing
-				'tighter': '-0.02em',
-				'tight': '-0.01em',
+				// Simplified letter spacing
+				'tighter': '-0.01em',
 				'normal': '0em',
 				'wide': '0.01em',
-				'wider': '0.02em',
-				'widest': '0.08em',
 			},
 
+			/* ==============================================
+			   SPACING SYSTEM - 8px Base Grid
+			   ============================================== */
+			spacing: {
+				'xs': '0.25rem',    // 4px
+				'sm': '0.5rem',     // 8px
+				'md': '1rem',       // 16px
+				'lg': '1.5rem',     // 24px
+				'xl': '2rem',       // 32px
+				'2xl': '3rem',      // 48px
+				'3xl': '4rem',      // 64px
+				'4xl': '5rem',      // 80px
+				'5xl': '6rem',      // 96px
+			},
+
+			/* ==============================================
+			   BORDER RADIUS SCALE - Premium B2B Design
+			   ============================================== */
+			borderRadius: {
+				'none': '0',
+				'xs': '0.125rem',   // 2px
+				'sm': '0.25rem',    // 4px
+				'md': '0.375rem',   // 6px
+				'lg': '0.5rem',     // 8px
+				'xl': '0.75rem',    // 12px
+				'2xl': '1rem',      // 16px
+				'3xl': '1.5rem',    // 24px
+				'full': '9999px',
+			},
+
+			/* ==============================================
+			   COLORS - Custom B2B Palette
+			   ============================================== */
 			colors: {
+				// Base system colors
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				
+				// Background variants
+				'background-secondary': 'hsl(var(--background-secondary))',
+				'background-tertiary': 'hsl(var(--background-tertiary))',
+				
+				// Interactive colors
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
@@ -109,6 +126,8 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				
+				// Semantic colors
 				success: {
 					DEFAULT: 'hsl(var(--success))',
 					foreground: 'hsl(var(--success-foreground))'
@@ -117,6 +136,23 @@ export default {
 					DEFAULT: 'hsl(var(--warning))',
 					foreground: 'hsl(var(--warning-foreground))'
 				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
+				},
+				
+				// Shape/box colors
+				'shape-green': 'hsl(var(--shape-green))',
+				'shape-blue': '#00457C',
+				'shape-grey': 'hsl(var(--shape-grey))',
+				'second-grey': '#FAFAFA',
+				
+				// Text colors
+				'text-primary': 'hsl(var(--text-primary))',
+				'text-secondary': 'hsl(var(--text-secondary))',
+				'text-accent': 'hsl(var(--text-accent))',
+				
+				// Chart colors
 				chart: {
 					'1': 'hsl(var(--chart-1))',
 					'2': 'hsl(var(--chart-2))',
@@ -124,6 +160,8 @@ export default {
 					'4': 'hsl(var(--chart-4))',
 					'5': 'hsl(var(--chart-5))'
 				},
+				
+				// Sidebar colors
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -135,18 +173,75 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
+
+			/* ==============================================
+			   BOX SHADOW SYSTEM - Professional Elevation
+			   ============================================== */
+			boxShadow: {
+				'none': 'none',
+				'xs': 'var(--shadow-xs)',
+				'sm': 'var(--shadow-sm)',
+				'md': 'var(--shadow-md)',
+				'lg': 'var(--shadow-lg)',
+				'xl': 'var(--shadow-xl)',
+				'2xl': 'var(--shadow-2xl)',
+				'elegant': 'var(--shadow-elegant)',
+				'subtle': 'var(--shadow-subtle)',
+				'strong': 'var(--shadow-strong)',
+			},
+
+			/* ==============================================
+			   BACKGROUND GRADIENTS
+			   ============================================== */
 			backgroundImage: {
 				'gradient-primary': 'var(--gradient-primary)',
-				'gradient-success': 'var(--gradient-success)'
+				'gradient-success': 'var(--gradient-success)',
+				'gradient-accent': 'var(--gradient-accent)',
+				'gradient-warm': 'var(--gradient-warm)',
 			},
-			boxShadow: {
-				'elegant': 'var(--shadow-elegant)'
+
+			/* ==============================================
+			   ANIMATION TIMING - Modern B2B Interactions
+			   ============================================== */
+			transitionDuration: {
+				'fastest': 'var(--animation-duration-fastest)',
+				'fast': 'var(--animation-duration-fast)',
+				'normal': 'var(--animation-duration-normal)',
+				'slow': 'var(--animation-duration-slow)',
+				'slowest': 'var(--animation-duration-slowest)',
 			},
-			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+
+			transitionTimingFunction: {
+				'ease': 'var(--animation-easing-ease)',
+				'ease-in': 'var(--animation-easing-ease-in)',
+				'ease-out': 'var(--animation-easing-ease-out)',
+				'ease-in-out': 'var(--animation-easing-ease-in-out)',
+				'bounce': 'var(--animation-easing-bounce)',
+				'smooth': 'var(--animation-easing-smooth)',
 			},
+
+			/* ==============================================
+			   Z-INDEX SCALE - Layering System
+			   ============================================== */
+			zIndex: {
+				'hide': 'var(--z-index-hide)',
+				'auto': 'var(--z-index-auto)',
+				'base': 'var(--z-index-base)',
+				'docked': 'var(--z-index-docked)',
+				'dropdown': 'var(--z-index-dropdown)',
+				'sticky': 'var(--z-index-sticky)',
+				'banner': 'var(--z-index-banner)',
+				'overlay': 'var(--z-index-overlay)',
+				'modal': 'var(--z-index-modal)',
+				'popover': 'var(--z-index-popover)',
+				'skip-link': 'var(--z-index-skip-link)',
+				'toast': 'var(--z-index-toast)',
+				'tooltip': 'var(--z-index-tooltip)',
+			},
+
+			/* ==============================================
+			   ANIMATIONS
+			   ============================================== */
 			keyframes: {
 				'accordion-down': {
 					from: {
@@ -166,8 +261,8 @@ export default {
 				}
 			},
 			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-down': 'accordion-down var(--animation-duration-normal) var(--animation-easing-ease-out)',
+				'accordion-up': 'accordion-up var(--animation-duration-normal) var(--animation-easing-ease-out)'
 			}
 		}
 	},

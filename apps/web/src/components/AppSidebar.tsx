@@ -4,7 +4,8 @@ import {
   BarChart3, 
   Puzzle, 
   Phone,
-  Mic
+  Mic,
+  FileText
 } from "lucide-react"
 import { NavLink } from "react-router-dom"
 
@@ -22,7 +23,8 @@ import {
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Build Agents", url: "/build", icon: Bot },
+  { title: "Build Agents", url: "/build/new", icon: Bot },
+  { title: "The Briefing Room", url: "/briefing-room", icon: FileText },
   { title: "Evaluate", url: "/evaluate", icon: BarChart3 },
   { title: "Integrations", url: "/integrations", icon: Puzzle },
   { title: "Telephony", url: "/telephony", icon: Phone },
@@ -39,18 +41,15 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className="transition-all duration-300 border-r bg-card"
+      className="transition-all duration-300 border-r bg-sidebar"
       collapsible="icon"
     >
       <SidebarContent className="px-4 py-6">
         {/* Brand */}
         <div className="mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <Mic className="w-4 h-4 text-white" />
-            </div>
             {!collapsed && (
-              <span className="text-xl font-bold text-sidebar-foreground">BetterCallRobots</span>
+              <span className="text-2xl tektur-logo text-sidebar-foreground">Better Call Robots</span>
             )}
           </div>
         </div>

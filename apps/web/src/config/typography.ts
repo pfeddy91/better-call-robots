@@ -2,89 +2,82 @@
  * TYPOGRAPHY CONFIGURATION
  * 
  * This file contains all typography-related configuration for easy customization.
- * Modify these values to change the entire app's typography system.
+ * Simplified 4-size system for Better Call Robots B2B application.
  */
 
 export const typographyConfig = {
   /* ==============================================
-     FONT FAMILIES - Easily swap out fonts here
+     FONT FAMILIES - Noto Sans only
      ============================================== */
   fonts: {
-    primary: 'Inter', // Main UI font (body text, forms, etc.)
-    secondary: 'Poppins', // Headings and display text
-    mono: 'JetBrains Mono', // Code and technical content
+    primary: 'Noto Sans', // Main UI font for all text
+    mono: 'JetBrains Mono', // Code and technical content only
   },
 
   /* ==============================================
-     FONT SIZES - Adjust scaling and hierarchy
+     SIMPLIFIED FONT SIZES - 4 sizes only
      ============================================== */
   sizes: {
-    // Display sizes for hero sections, major headings
-    display: {
-      xl: '4rem',      // 64px - Hero headlines
-      lg: '3.5rem',    // 56px - Large display text
-      md: '3rem',      // 48px - Medium display text
-      sm: '2.5rem',    // 40px - Small display text
+    // Headers - For main page titles, major headings
+    header: {
+      size: '1.5rem',      // 24px (2xl equivalent)
+      lineHeight: '1.3',
+      fontWeight: '600',
+      letterSpacing: '-0.01em',
     },
     
-    // Heading sizes for section titles, card headers
-    heading: {
-      xl: '2.25rem',   // 36px - Major section headings
-      lg: '2rem',      // 32px - Section headings
-      md: '1.75rem',   // 28px - Subsection headings
-      sm: '1.5rem',    // 24px - Card/component headings
-      xs: '1.25rem',   // 20px - Small headings
+    // Sub-Headers - For section titles, card headers
+    subHeader: {
+      size: '1.25rem',     // 20px (xl equivalent)
+      lineHeight: '1.4',
+      fontWeight: '500',
+      letterSpacing: 'normal',
     },
     
-    // Body text sizes for content
-    body: {
-      xl: '1.125rem',  // 18px - Large body text
-      lg: '1rem',      // 16px - Default body text
-      md: '0.875rem',  // 14px - Small body text
-      sm: '0.8125rem', // 13px - Fine print
-      xs: '0.75rem',   // 12px - Extra small text
+    // Standard Text - Default body text, descriptions
+    standard: {
+      size: '1rem',        // 16px (lg equivalent)
+      lineHeight: '1.6',
+      fontWeight: '400',
+      letterSpacing: 'normal',
     },
     
-    // Utility text sizes
-    utility: {
-      caption: '0.6875rem',  // 11px - Image captions, metadata
-      overline: '0.625rem',  // 10px - Labels, categories
+    // Small Text - Captions, metadata, fine print
+    small: {
+      size: '0.875rem',    // 14px (sm equivalent)
+      lineHeight: '1.5',
+      fontWeight: '400',
+      letterSpacing: 'normal',
     }
   },
 
   /* ==============================================
-     FONT WEIGHTS - Control text emphasis
+     FONT WEIGHTS - Essential weights only
      ============================================== */
   weights: {
-    light: 300,
-    normal: 400,
-    medium: 500,
-    semibold: 600,
-    bold: 700,
-    extrabold: 800,
+    normal: 400,    // Standard text
+    medium: 500,    // Sub-headers, emphasis
+    semibold: 600,  // Headers, important text
+    bold: 700,      // Strong emphasis (if needed)
   },
 
   /* ==============================================
-     LINE HEIGHTS - Control text spacing
+     LINE HEIGHTS - Optimized for readability
      ============================================== */
   lineHeights: {
-    tight: 1.1,     // For large headings
-    snug: 1.25,     // For headings
-    normal: 1.4,    // For most text
-    relaxed: 1.6,   // For body content
-    loose: 1.8,     // For long-form content
+    tight: 1.3,     // Headers
+    normal: 1.4,    // Sub-headers
+    relaxed: 1.5,   // Small text
+    loose: 1.6,     // Standard body text
   },
 
   /* ==============================================
-     LETTER SPACING - Fine-tune text appearance
+     LETTER SPACING - Subtle adjustments
      ============================================== */
   letterSpacing: {
-    tighter: '-0.02em',
-    tight: '-0.01em',
-    normal: '0em',
-    wide: '0.01em',
-    wider: '0.02em',
-    widest: '0.08em', // For overlines/labels
+    tighter: '-0.01em',  // Headers
+    normal: '0em',       // Everything else
+    wide: '0.01em',      // Special cases
   },
 
   /* ==============================================
@@ -92,8 +85,9 @@ export const typographyConfig = {
      ============================================== */
   colors: {
     // Primary text colors
-    primary: 'hsl(var(--foreground))',
-    secondary: 'hsl(var(--muted-foreground))',
+    primary: 'hsl(var(--text-primary))',      // text-black
+    secondary: 'hsl(var(--text-secondary))',  // text-grey
+    accent: 'hsl(var(--text-accent))',        // text-green
     
     // Contextual colors
     success: 'hsl(var(--success-foreground))',
@@ -106,24 +100,20 @@ export const typographyConfig = {
   },
 
   /* ==============================================
-     RESPONSIVE BREAKPOINTS for Typography
+     RESPONSIVE SCALING - Mobile optimization
      ============================================== */
   responsive: {
-    // Scale factors for different screen sizes
     mobile: {
-      displayScale: 0.75,  // Smaller displays on mobile
-      headingScale: 0.85,  // Slightly smaller headings
-      bodyScale: 1,        // Normal body text
-    },
-    tablet: {
-      displayScale: 0.9,
-      headingScale: 0.95,
-      bodyScale: 1,
+      header: '1.375rem',     // 22px - Slightly smaller on mobile
+      subHeader: '1.125rem',  // 18px
+      standard: '1rem',       // 16px - Same
+      small: '0.875rem',      // 14px - Same
     },
     desktop: {
-      displayScale: 1,     // Full size on desktop
-      headingScale: 1,
-      bodyScale: 1,
+      header: '1.5rem',       // 24px - Full size
+      subHeader: '1.25rem',   // 20px
+      standard: '1rem',       // 16px
+      small: '0.875rem',      // 14px
     },
   }
 };
@@ -133,29 +123,55 @@ export const typographyConfig = {
    ============================================== */
 
 /**
- * Get font family CSS value
+ * Get font family CSS value with fallbacks
  */
-export const getFontFamily = (type: keyof typeof typographyConfig.fonts) => {
+export const getFontFamily = (type: keyof typeof typographyConfig.fonts = 'primary') => {
   const font = typographyConfig.fonts[type];
   const fallbacks = {
     primary: 'system-ui, -apple-system, sans-serif',
-    secondary: 'system-ui, -apple-system, sans-serif',
     mono: 'Consolas, Monaco, monospace',
   };
   return `${font}, ${fallbacks[type]}`;
 };
 
 /**
- * Get responsive font size
+ * Get complete text styles for a size
  */
-export const getResponsiveFontSize = (
-  category: keyof typeof typographyConfig.sizes,
-  size: string,
-  breakpoint: keyof typeof typographyConfig.responsive = 'desktop'
+export const getTextStyles = (
+  size: keyof typeof typographyConfig.sizes,
+  breakpoint: 'mobile' | 'desktop' = 'desktop'
 ) => {
-  const baseSize = typographyConfig.sizes[category][size as keyof typeof typographyConfig.sizes[typeof category]];
-  const scale = typographyConfig.responsive[breakpoint][`${category}Scale` as keyof typeof typographyConfig.responsive[typeof breakpoint]];
-  return `calc(${baseSize} * ${scale})`;
+  const sizeConfig = typographyConfig.sizes[size];
+  const responsiveSize = typographyConfig.responsive[breakpoint][size];
+  
+  return {
+    fontSize: responsiveSize,
+    lineHeight: sizeConfig.lineHeight,
+    fontWeight: sizeConfig.fontWeight,
+    letterSpacing: sizeConfig.letterSpacing,
+    fontFamily: getFontFamily('primary'),
+  };
+};
+
+/**
+ * Generate CSS classes for typography
+ */
+export const generateTypographyClasses = () => {
+  const sizes = Object.keys(typographyConfig.sizes) as Array<keyof typeof typographyConfig.sizes>;
+  
+  return sizes.map(size => {
+    const config = typographyConfig.sizes[size];
+    const className = `text-${size}`;
+    
+    return `
+  .${className} {
+    font-family: ${getFontFamily('primary')};
+    font-size: ${config.size};
+    line-height: ${config.lineHeight};
+    font-weight: ${config.fontWeight};
+    letter-spacing: ${config.letterSpacing};
+  }`;
+  }).join('\n');
 };
 
 export default typographyConfig;

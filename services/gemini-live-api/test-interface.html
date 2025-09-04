@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Live API Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .test-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .test-card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .test-section {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .response-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .response-box pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 12px;
+            color: #333;
+        }
+        
+        .session-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .session-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .session-item.active {
+            border-left-color: #28a745;
+        }
+        
+        .session-item.inactive {
+            border-left-color: #dc3545;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Gemini Live API Test Interface</h1>
+        
+        <div class="test-grid">
+            <!-- Connection Test -->
+            <div class="test-card">
+                <h2>1️⃣ Connection Test</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    Test authentication and WebSocket connection to Gemini Live API
+                </p>
+                <button onclick="testConnection()">Test Connection</button>
+                <div id="connectionStatus"></div>
+                <div id="connectionResponse" class="response-box" style="display: none;">
+                    <pre></pre>
+                </div>
+            </div>
+            
+            <!-- Create Session -->
+            <div class="test-card">
+                <h2>2️⃣ Create Test Session</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    Create a Gemini Live session without a phone call
+                </p>
+                <div class="test-section">
+                    <label>Agent ID:</label>
+                    <select id="agentId">
+                        <option value="default">Default Agent</option>
+                        <option value="sales">Sales Agent</option>
+                        <option value="support">Support Agent</option>
+                        <option value="custom">Custom Agent</option>
+                    </select>
+                </div>
+                <div class="test-section">
+                    <label>Customer Name:</label>
+                    <input type="text" id="customerName" placeholder="John Doe" value="Test User">
+                </div>
+                <button onclick="createSession()">Create Session</button>
+                <div id="sessionStatus"></div>
+                <div id="sessionResponse" class="response-box" style="display: none;">
+                    <pre></pre>
+                </div>
+            </div>
+            
+            <!-- Send Text Message -->
+            <div class="test-card">
+                <h2>3️⃣ Send Text to Session</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    Send text messages to an active session and get responses
+                </p>
+                <div class="test-section">
+                    <label>Session ID:</label>
+                    <input type="text" id="messageSessionId" placeholder="Enter session ID from step 2">
+                </div>
+                <div class="test-section">
+                    <label>Message:</label>
+                    <textarea id="messageText" placeholder="Hello, how can you help me today?">Hello, I need help with my account</textarea>
+                </div>
+                <button onclick="sendMessage()">Send Message</button>
+                <div id="messageStatus"></div>
+                <div id="messageResponse" class="response-box" style="display: none;">
+                    <pre></pre>
+                </div>
+            </div>
+            
+            <!-- Session Info -->
+            <div class="test-card">
+                <h2>4️⃣ Session Information</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    Get detailed information about a session
+                </p>
+                <div class="test-section">
+                    <label>Session ID:</label>
+                    <input type="text" id="infoSessionId" placeholder="Enter session ID">
+                </div>
+                <button onclick="getSessionInfo()">Get Session Info</button>
+                <button onclick="endSession()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">End Session</button>
+                <div id="infoStatus"></div>
+                <div id="infoResponse" class="response-box" style="display: none;">
+                    <pre></pre>
+                </div>
+            </div>
+            
+            <!-- Active Sessions -->
+            <div class="test-card">
+                <h2>5️⃣ Active Sessions</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    View all active sessions
+                </p>
+                <button onclick="getSessions()">Refresh Sessions</button>
+                <div id="sessionsStatus"></div>
+                <ul id="sessionsList" class="session-list"></ul>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="test-card">
+                <h2>6️⃣ Service Statistics</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    View service statistics and configuration
+                </p>
+                <button onclick="getStats()">Get Statistics</button>
+                <div class="stats-grid" id="statsGrid" style="display: none;">
+                    <div class="stat-box">
+                        <div class="stat-value" id="activeSessions">0</div>
+                        <div class="stat-label">Active Sessions</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalSessions">0</div>
+                        <div class="stat-label">Total Sessions</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="avgDuration">0s</div>
+                        <div class="stat-label">Avg Duration</div>
+                    </div>
+                </div>
+                <div id="statsResponse" class="response-box" style="display: none;">
+                    <pre></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8081';
+        
+        function showStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `status ${type}`;
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+        
+        function showResponse(elementId, data) {
+            const element = document.getElementById(elementId);
+            element.querySelector('pre').textContent = JSON.stringify(data, null, 2);
+            element.style.display = 'block';
+        }
+        
+        async function testConnection() {
+            showStatus('connectionStatus', 'Testing connection...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/test/gemini-connection`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('connectionStatus', '✅ Connection successful! All tests passed.', 'success');
+                } else {
+                    showStatus('connectionStatus', `❌ Connection failed: ${data.error}`, 'error');
+                }
+                showResponse('connectionResponse', data);
+            } catch (error) {
+                showStatus('connectionStatus', `❌ Network error: ${error.message}`, 'error');
+                showResponse('connectionResponse', { error: error.message });
+            }
+        }
+        
+        async function createSession() {
+            const agentId = document.getElementById('agentId').value;
+            const customerName = document.getElementById('customerName').value;
+            
+            showStatus('sessionStatus', 'Creating session...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/test/create-session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agentId, customerName })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('sessionStatus', `✅ Session created! ID: ${data.sessionId}`, 'success');
+                    // Auto-fill session ID in other fields
+                    document.getElementById('messageSessionId').value = data.sessionId;
+                    document.getElementById('infoSessionId').value = data.sessionId;
+                } else {
+                    showStatus('sessionStatus', `❌ Failed: ${data.error}`, 'error');
+                }
+                showResponse('sessionResponse', data);
+            } catch (error) {
+                showStatus('sessionStatus', `❌ Network error: ${error.message}`, 'error');
+                showResponse('sessionResponse', { error: error.message });
+            }
+        }
+        
+        async function sendMessage() {
+            const sessionId = document.getElementById('messageSessionId').value;
+            const text = document.getElementById('messageText').value;
+            
+            if (!sessionId) {
+                showStatus('messageStatus', '❌ Please enter a session ID', 'error');
+                return;
+            }
+            
+            showStatus('messageStatus', 'Sending message...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/test/send-text`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId, text })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('messageStatus', '✅ Message sent and response received!', 'success');
+                } else {
+                    showStatus('messageStatus', `❌ Failed: ${data.error}`, 'error');
+                }
+                showResponse('messageResponse', data);
+            } catch (error) {
+                showStatus('messageStatus', `❌ Network error: ${error.message}`, 'error');
+                showResponse('messageResponse', { error: error.message });
+            }
+        }
+        
+        async function getSessionInfo() {
+            const sessionId = document.getElementById('infoSessionId').value;
+            
+            if (!sessionId) {
+                showStatus('infoStatus', '❌ Please enter a session ID', 'error');
+                return;
+            }
+            
+            showStatus('infoStatus', 'Getting session info...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/test/session/${sessionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('infoStatus', '✅ Session info retrieved!', 'success');
+                } else {
+                    showStatus('infoStatus', `❌ ${data.error}`, 'error');
+                }
+                showResponse('infoResponse', data);
+            } catch (error) {
+                showStatus('infoStatus', `❌ Network error: ${error.message}`, 'error');
+                showResponse('infoResponse', { error: error.message });
+            }
+        }
+        
+        async function endSession() {
+            const sessionId = document.getElementById('infoSessionId').value;
+            
+            if (!sessionId) {
+                showStatus('infoStatus', '❌ Please enter a session ID', 'error');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to end this session?')) {
+                return;
+            }
+            
+            showStatus('infoStatus', 'Ending session...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/test/session/${sessionId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('infoStatus', '✅ Session ended!', 'success');
+                } else {
+                    showStatus('infoStatus', `❌ Failed: ${data.error}`, 'error');
+                }
+                showResponse('infoResponse', data);
+            } catch (error) {
+                showStatus('infoStatus', `❌ Network error: ${error.message}`, 'error');
+                showResponse('infoResponse', { error: error.message });
+            }
+        }
+        
+        async function getSessions() {
+            showStatus('sessionsStatus', 'Loading sessions...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/test/sessions`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('sessionsStatus', `Found ${data.totalSessions} session(s)`, 'success');
+                    
+                    const list = document.getElementById('sessionsList');
+                    list.innerHTML = '';
+                    
+                    if (data.sessions.length === 0) {
+                        list.innerHTML = '<li class="session-item">No active sessions</li>';
+                    } else {
+                        data.sessions.forEach(session => {
+                            const item = document.createElement('li');
+                            item.className = `session-item ${session.isActive ? 'active' : 'inactive'}`;
+                            item.innerHTML = `
+                                <strong>Session:</strong> ${session.sessionId}<br>
+                                <strong>Call SID:</strong> ${session.callSid}<br>
+                                <strong>Agent:</strong> ${session.agentId}<br>
+                                <strong>Status:</strong> ${session.isActive ? '🟢 Active' : '🔴 Inactive'}<br>
+                                <strong>Started:</strong> ${new Date(session.startTime).toLocaleString()}
+                            `;
+                            list.appendChild(item);
+                        });
+                    }
+                } else {
+                    showStatus('sessionsStatus', `❌ Failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('sessionsStatus', `❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function getStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/test/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('statsGrid').style.display = 'grid';
+                    document.getElementById('activeSessions').textContent = data.statistics.activeSessions;
+                    document.getElementById('totalSessions').textContent = data.statistics.totalSessions;
+                    document.getElementById('avgDuration').textContent = 
+                        Math.round(data.statistics.averageSessionDuration / 1000) + 's';
+                    
+                    showResponse('statsResponse', data);
+                } else {
+                    showResponse('statsResponse', { error: data.error });
+                }
+            } catch (error) {
+                showResponse('statsResponse', { error: error.message });
+            }
+        }
+        
+        // Auto-refresh sessions every 5 seconds
+        setInterval(() => {
+            if (document.hidden) return;
+            getSessions();
+        }, 5000);
+        
+        // Load sessions on page load
+        window.addEventListener('load', () => {
+            getSessions();
+            getStats();
+        });
+    </script>
+</body>
+</html> 

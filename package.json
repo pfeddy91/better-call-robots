@@ -4,9 +4,11 @@
   "private": true,
   "description": "BetterCallRobots - AI Voice Assistant Platform",
   "scripts": {
-    "dev": "concurrently \"npm run web:dev\" \"npm run api:dev\"",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "web:dev": "npm run dev --workspace=apps/web",
-    "api:dev": "cd services/api && python main.py",
+    "api:dev": "cd services/api && make all && make run",
+    "gemini:dev": "cd services/gemini-live-api && npm run dev",
+    "dev": "concurrently \"npm run web:dev\" \"npm run gemini:dev\"",
     "build": "npm run build --workspace=apps/web",
     "install:all": "npm install && npm install --workspace=apps/web",
     "clean": "rm -rf node_modules apps/web/node_modules services/api/__pycache__"
