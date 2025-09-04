@@ -222,3 +222,4 @@ logs
 *.njsproj
 *.sln
 *.sw?services/gemini-live-sandbox/external/
+tools/configs/*.json
